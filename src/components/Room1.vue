@@ -2,6 +2,9 @@
   <div
     class="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-start overflow-hidden relative pt-8 md:pt-12 lg:pt-16 pb-10"
   >
+    <!-- Timer Display -->
+    <TimerDisplay />
+
     <!-- Achtergrond textuur -->
     <div
       class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black opacity-90"
@@ -75,6 +78,7 @@
       <h2
         class="text-5xl md:text-7xl font-bold text-amber-500 mb-8 md:mb-12 lg:mb-16 text-center animate-pulse"
       >
+        <br /><br />
         Kamers Overzicht
       </h2>
 
@@ -125,9 +129,6 @@
           >
             De bar was het domein van oude heer Prins...
           </p>
-          <div class="text-base md:text-lg lg:text-xl text-gray-400">
-            Items: 5 | Code: 5 cijfers
-          </div>
         </div>
 
         <!-- De Keuken -->
@@ -147,7 +148,7 @@
               class="text-3xl md:text-4xl lg:text-5xl font-bold"
               :class="canAccessKeuken ? 'text-blue-400' : 'text-gray-500'"
             >
-              🍽️ De Keuken
+              {{ canAccessKeuken ? "🍽️ De Keuken" : "🔒 ???" }}
             </h3>
             <span
               v-if="getRoomStatus('keuken')"
@@ -161,22 +162,22 @@
             >
           </div>
           <p
+            v-if="canAccessKeuken"
             class="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6"
-            :class="!canAccessKeuken && 'opacity-50'"
           >
             In de keukenkast bewaarde de familie Van Heugten...
           </p>
-          <div
-            class="text-base md:text-lg lg:text-xl"
-            :class="canAccessKeuken ? 'text-gray-400' : 'text-gray-600'"
+          <p
+            v-else
+            class="text-gray-500 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6 italic"
           >
-            Items: 4 | Code: 5 cijfers
-          </div>
+            Los eerst de vorige kamer op
+          </p>
           <div
             v-if="!canAccessKeuken"
             class="mt-4 md:mt-6 lg:mt-8 text-red-400 text-base md:text-lg lg:text-xl"
           >
-            ⚠️ Voltooi eerst De Bar
+            ⚠️ Voltooi eerst de vorige kamer
           </div>
         </div>
 
@@ -197,7 +198,7 @@
               class="text-3xl md:text-4xl lg:text-5xl font-bold"
               :class="canAccessSlaapkamer ? 'text-purple-400' : 'text-gray-500'"
             >
-              🛏️ Slaapkamer Beneden
+              {{ canAccessSlaapkamer ? "🛏️ Slaapkamer Beneden" : "🔒 ???" }}
             </h3>
             <span
               v-if="getRoomStatus('slaapkamer')"
@@ -211,22 +212,23 @@
             >
           </div>
           <p
+            v-if="canAccessSlaapkamer"
             class="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6"
-            :class="!canAccessSlaapkamer && 'opacity-50'"
           >
-            De dochter van heer Prins verbleef hier. Haar geheim ligt verborgen...
+            De dochter van heer Prins verbleef hier. Haar geheim ligt
+            verborgen...
           </p>
-          <div
-            class="text-base md:text-lg lg:text-xl"
-            :class="canAccessSlaapkamer ? 'text-gray-400' : 'text-gray-600'"
+          <p
+            v-else
+            class="text-gray-500 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6 italic"
           >
-            Items: 4 briefjes | Code: 8 cijfers
-          </div>
+            Los eerst de vorige kamer op
+          </p>
           <div
             v-if="!canAccessSlaapkamer"
             class="mt-4 md:mt-6 lg:mt-8 text-red-400 text-base md:text-lg lg:text-xl"
           >
-            ⚠️ Voltooi eerst De Keuken
+            ⚠️ Voltooi eerst de vorige kamer
           </div>
         </div>
 
@@ -247,7 +249,7 @@
               class="text-3xl md:text-4xl lg:text-5xl font-bold"
               :class="canAccessTuin ? 'text-green-400' : 'text-gray-500'"
             >
-              🏡 De Tuin - Buitenhuisje
+              {{ canAccessTuin ? "🏡 De Tuin - Buitenhuisje" : "🔒 ???" }}
             </h3>
             <span
               v-if="getRoomStatus('tuin')"
@@ -261,32 +263,174 @@
             >
           </div>
           <p
+            v-if="canAccessTuin"
             class="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6"
-            :class="!canAccessTuin && 'opacity-50'"
           >
             Het buitenhuisje was ooit de schuilplaats tijdens de oorlog...
           </p>
-          <div
-            class="text-base md:text-lg lg:text-xl"
-            :class="canAccessTuin ? 'text-gray-400' : 'text-gray-600'"
+          <p
+            v-else
+            class="text-gray-500 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6 italic"
           >
-            Items: Jeu de boule patroon | Code: 4 cijfers
-          </div>
+            Los eerst de vorige kamer op
+          </p>
           <div
             v-if="!canAccessTuin"
             class="mt-4 md:mt-6 lg:mt-8 text-red-400 text-base md:text-lg lg:text-xl"
           >
-            ⚠️ Voltooi eerst Slaapkamer
+            ⚠️ Voltooi eerst de vorige kamer
           </div>
         </div>
 
-        <!-- Meer kamers komen later -->
+        <!-- Het Halletje -->
         <div
-          class="md:col-span-2 bg-gray-800/30 rounded-2xl p-10 md:p-14 lg:p-16 border-2 border-gray-700"
+          @click="goToRoom('halletje')"
+          class="bg-gray-800 bg-opacity-50 rounded-2xl p-6 md:p-10 lg:p-12 shadow-2xl border-2 transition-all duration-300 cursor-pointer hover:scale-105 transform"
+          :class="
+            getRoomStatus('halletje')
+              ? 'border-green-500 bg-green-900/20'
+              : canAccessHalletje
+              ? 'border-purple-600 hover:bg-purple-900/20'
+              : 'border-gray-600 opacity-50 cursor-not-allowed'
+          "
         >
-          <p class="text-gray-500 text-center text-xl md:text-2xl">
-            🚧 Meer kamers komen binnenkort...
+          <div class="flex justify-between items-start mb-4 md:mb-6 lg:mb-8">
+            <h3
+              class="text-3xl md:text-4xl lg:text-5xl font-bold"
+              :class="canAccessHalletje ? 'text-purple-400' : 'text-gray-500'"
+            >
+              {{ canAccessHalletje ? "🚪 Het Halletje" : "🔒 ???" }}
+            </h3>
+            <span
+              v-if="getRoomStatus('halletje')"
+              class="text-green-400 text-xl md:text-2xl"
+              >✅</span
+            >
+            <span
+              v-else-if="!canAccessHalletje"
+              class="text-gray-500 text-xl md:text-2xl"
+              >🔒</span
+            >
+          </div>
+          <p
+            v-if="canAccessHalletje"
+            class="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6"
+          >
+            Het Kleurenmysterie - vijf voorwerpen, vijf kleuren...
           </p>
+          <p
+            v-else
+            class="text-gray-500 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6 italic"
+          >
+            Los eerst de vorige kamer op
+          </p>
+          <div
+            v-if="!canAccessHalletje"
+            class="mt-4 md:mt-6 lg:mt-8 text-red-400 text-base md:text-lg lg:text-xl"
+          >
+            ⚠️ Voltooi eerst de vorige kamer
+          </div>
+        </div>
+
+        <!-- Overloop/Zolder -->
+        <div
+          @click="goToRoom('overloop')"
+          class="bg-gray-800 bg-opacity-50 rounded-2xl p-6 md:p-10 lg:p-12 shadow-2xl border-2 transition-all duration-300 cursor-pointer hover:scale-105 transform"
+          :class="
+            getRoomStatus('overloop')
+              ? 'border-green-500 bg-green-900/20'
+              : canAccessOverloop
+              ? 'border-orange-600 hover:bg-orange-900/20'
+              : 'border-gray-600 opacity-50 cursor-not-allowed'
+          "
+        >
+          <div class="flex justify-between items-start mb-4 md:mb-6 lg:mb-8">
+            <h3
+              class="text-3xl md:text-4xl lg:text-5xl font-bold"
+              :class="canAccessOverloop ? 'text-orange-400' : 'text-gray-500'"
+            >
+              {{ canAccessOverloop ? "🎯 Overloop/Zolder" : "🔒 ???" }}
+            </h3>
+            <span
+              v-if="getRoomStatus('overloop')"
+              class="text-green-400 text-xl md:text-2xl"
+              >✅</span
+            >
+            <span
+              v-else-if="!canAccessOverloop"
+              class="text-gray-500 text-xl md:text-2xl"
+              >🔒</span
+            >
+          </div>
+          <p
+            v-if="canAccessOverloop"
+            class="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6"
+          >
+            Het Sjoelspel der Generaties - de oude sjoelbak vertelt zijn
+            verhaal...
+          </p>
+          <p
+            v-else
+            class="text-gray-500 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6 italic"
+          >
+            Los eerst de vorige kamer op
+          </p>
+          <div
+            v-if="!canAccessOverloop"
+            class="mt-4 md:mt-6 lg:mt-8 text-red-400 text-base md:text-lg lg:text-xl"
+          >
+            ⚠️ Voltooi eerst de vorige kamer
+          </div>
+        </div>
+
+        <!-- De Badkamer -->
+        <div
+          @click="goToRoom('badkamer')"
+          class="bg-gray-800 bg-opacity-50 rounded-2xl p-6 md:p-10 lg:p-12 shadow-2xl border-2 transition-all duration-300 cursor-pointer hover:scale-105 transform"
+          :class="
+            getRoomStatus('badkamer')
+              ? 'border-green-500 bg-green-900/20'
+              : canAccessBadkamer
+              ? 'border-cyan-600 hover:bg-cyan-900/20'
+              : 'border-gray-600 opacity-50 cursor-not-allowed'
+          "
+        >
+          <div class="flex justify-between items-start mb-4 md:mb-6 lg:mb-8">
+            <h3
+              class="text-3xl md:text-4xl lg:text-5xl font-bold"
+              :class="canAccessBadkamer ? 'text-cyan-400' : 'text-gray-500'"
+            >
+              {{ canAccessBadkamer ? "🚿 De Badkamer" : "🔒 ???" }}
+            </h3>
+            <span
+              v-if="getRoomStatus('badkamer')"
+              class="text-green-400 text-xl md:text-2xl"
+              >✅</span
+            >
+            <span
+              v-else-if="!canAccessBadkamer"
+              class="text-gray-500 text-xl md:text-2xl"
+              >🔒</span
+            >
+          </div>
+          <p
+            v-if="canAccessBadkamer"
+            class="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6"
+          >
+            De badkamer met het geheim van tegelzetter Johannes...
+          </p>
+          <p
+            v-else
+            class="text-gray-500 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6 italic"
+          >
+            Los eerst de vorige kamer op
+          </p>
+          <div
+            v-if="!canAccessBadkamer"
+            class="mt-4 md:mt-6 lg:mt-8 text-red-400 text-base md:text-lg lg:text-xl"
+          >
+            ⚠️ Voltooi eerst de vorige kamer
+          </div>
         </div>
       </div>
 
@@ -311,6 +455,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import TimerDisplay from "./TimerDisplay.vue";
 
 const router = useRouter();
 const backgroundMusic = ref(null);
@@ -357,6 +502,21 @@ const canAccessTuin = computed(() => {
   return getRoomStatus("slaapkamer");
 });
 
+// Check of halletje toegankelijk is (tuin moet eerst voltooid zijn)
+const canAccessHalletje = computed(() => {
+  return getRoomStatus("tuin");
+});
+
+// Check of overloop toegankelijk is (halletje moet eerst voltooid zijn)
+const canAccessOverloop = computed(() => {
+  return getRoomStatus("halletje");
+});
+
+// Check of badkamer toegankelijk is (overloop moet eerst voltooid zijn)
+const canAccessBadkamer = computed(() => {
+  return getRoomStatus("overloop");
+});
+
 // Navigeer naar een kamer
 const goToRoom = (roomId) => {
   // Voor keuken: check eerst of bar is voltooid
@@ -364,9 +524,33 @@ const goToRoom = (roomId) => {
     // Shake animatie of waarschuwing
     return;
   }
-  
+
   // Voor slaapkamer: check eerst of keuken is voltooid
   if (roomId === "slaapkamer" && !canAccessSlaapkamer.value) {
+    // Shake animatie of waarschuwing
+    return;
+  }
+
+  // Voor halletje: check eerst of tuin is voltooid
+  if (roomId === "halletje" && !canAccessHalletje.value) {
+    // Shake animatie of waarschuwing
+    return;
+  }
+
+  // Voor overloop: check eerst of halletje is voltooid
+  if (roomId === "overloop" && !canAccessOverloop.value) {
+    // Shake animatie of waarschuwing
+    return;
+  }
+
+  // Voor tuin: check eerst of slaapkamer is voltooid
+  if (roomId === "tuin" && !canAccessTuin.value) {
+    // Shake animatie of waarschuwing
+    return;
+  }
+
+  // Voor badkamer: check eerst of overloop is voltooid
+  if (roomId === "badkamer" && !canAccessBadkamer.value) {
     // Shake animatie of waarschuwing
     return;
   }
@@ -389,7 +573,7 @@ onMounted(() => {
 
   // Check of narration al is afgespeeld in deze sessie
   const narrationPlayed = sessionStorage.getItem("room1NarrationPlayed");
-  
+
   if (!narrationPlayed) {
     // Start narration na een korte delay
     setTimeout(() => {
@@ -409,6 +593,8 @@ onUnmounted(() => {
 });
 
 const startNarration = () => {
+  return;
+
   // Check of browser text-to-speech ondersteunt
   if ("speechSynthesis" in window) {
     // Fade muziek naar heel zacht tijdens narration

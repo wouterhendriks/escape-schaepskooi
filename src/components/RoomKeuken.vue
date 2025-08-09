@@ -2,6 +2,7 @@
   <div
     class="h-screen w-screen bg-gray-900 flex flex-col items-center justify-center overflow-hidden relative"
   >
+    <TimerDisplay />
     <!-- Achtergrond textuur - keuken thema -->
     <div
       class="absolute inset-0 bg-gradient-to-br from-blue-950 via-gray-900 to-black opacity-90"
@@ -82,17 +83,10 @@
       <div
         class="bg-gray-800 bg-opacity-50 rounded-2xl p-12 shadow-2xl border-2 border-blue-600/30"
       >
-        <p class="text-gray-300 text-3xl mb-12 leading-relaxed font-serif">
-          Sinds de renovatie van 1985 gebeuren er vreemde dingen in de keuken.
-          Elke ochtend ligt alles anders dan de avond ervoor... <br />
-          <br />
-          De oude dorpsbewoners fluisteren over heer Prins en zijn heilige
-          ochtendritueel. Vijf voorwerpen, altijd in dezelfde volgorde. 'Wie
-          mijn ritueel verstoort, vindt nooit rust,' zou hij gezegd hebben.<br /><br />
-          Vannacht heeft zijn geest weer huisgehouden. Vijf voorwerpen liggen
-          verspreid door de keuken. Vind ze en plaats ze in de juiste volgorde
-          op het aanrecht. Let op de geheime markeringen..."
-        </p>
+        <p
+          class="text-gray-300 text-3xl mb-12 leading-relaxed font-serif"
+          v-html="roomDescriptionHtml"
+        ></p>
 
         <!-- Voorwerpen-overzicht (fysiek ordenen, geen digitale bediening) -->
         <div
@@ -126,8 +120,15 @@
             v-for="(hint, index) in hints"
             :key="index"
             @click="showHint(index)"
-            :disabled="hintsUsed[index]"
-            class="flex-1 px-6 py-4 bg-purple-900/50 text-purple-300 text-xl rounded-xl hover:bg-purple-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            :disabled="index > 0 && !hintsUsed[index - 1]"
+            :class="[
+              'flex-1 px-6 py-4 text-xl rounded-xl transition-all',
+              hintsUsed[index]
+                ? 'bg-green-900/50 text-green-300'
+                : index > 0 && !hintsUsed[index - 1]
+                ? 'bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-50'
+                : 'bg-purple-900/50 text-purple-300 hover:bg-purple-800/50',
+            ]"
           >
             {{ hintsUsed[index] ? hint : `Hint ${index + 1} (-5 min)` }}
           </button>
@@ -149,7 +150,7 @@
           @click="goBack"
           class="px-12 py-6 bg-gray-700 text-gray-300 text-2xl rounded-xl hover:bg-gray-600 transition-all duration-300 hover:scale-105 transform"
         >
-          ← Terug naar De Bar
+          ← Terug naar overzicht
         </button>
         <button
           v-if="isCompleted"
@@ -177,9 +178,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { azureSpeech } from "../services/azureSpeech";
+import TimerDisplay from "./TimerDisplay.vue";
 
 const router = useRouter();
 const backgroundMusic = ref(null);
@@ -189,7 +191,7 @@ const isNarrating = ref(false);
 
 // Puzzle data
 const roomTitle = "De Keuken";
-const roomDescription = `In de keukenkast bewaarde de familie Van Heugten de oude serviesset. Maar waarom staan sommige borden en kopjes in een vreemde volgorde?`;
+const roomDescription = `Sinds de renovatie van 1985 gebeuren er vreemde dingen in de keuken. Elke ochtend ligt alles anders dan de avond ervoor..\nDe oude dorpsbewoners fluisteren over heer Prins en zijn heilige ochtendritueel. Vijf voorwerpen, altijd in dezelfde volgorde. 'Wie mijn ritueel verstoort, vindt nooit rust,' zou hij gezegd hebben. ... Vannacht heeft zijn geest weer huisgehouden. Vijf voorwerpen liggen verspreid door de keuken. Vind ze en plaats ze in de juiste volgorde op het aanrecht. Let op de geheime markeringen..."`;
 const solution = "68934"; // 5-cijferige code voor deze kamer
 const totalItems = 5;
 const hints = [
@@ -205,6 +207,12 @@ const hintsUsed = ref([false, false, false]);
 const message = ref("");
 const messageClass = ref("");
 const isCompleted = ref(false);
+const hasPlayedNarration = ref(false);
+
+// Converteer nieuwe regels naar <br /> voor weergave
+const roomDescriptionHtml = computed(() => {
+  return roomDescription.replace(/\n/g, `<br />`);
+});
 
 onMounted(() => {
   // Check if previous room is completed
@@ -239,15 +247,11 @@ onMounted(() => {
     });
   }
 
-  // Check of narration al is afgespeeld in deze sessie
-  const narrationPlayed = sessionStorage.getItem("keukenNarrationPlayed");
-  
-  // Start narration alleen als niet eerder afgespeeld en kamer niet voltooid
-  if (!isCompleted.value && !narrationPlayed) {
+  // Start narration alleen als niet eerder afgespeeld tijdens dit bezoek en kamer niet voltooid
+  if (!isCompleted.value && !hasPlayedNarration.value) {
     setTimeout(() => {
       startNarration();
-      // Markeer als afgespeeld voor deze sessie
-      sessionStorage.setItem("keukenNarrationPlayed", "true");
+      hasPlayedNarration.value = true;
     }, 500);
   }
 });
@@ -268,6 +272,9 @@ onUnmounted(() => {
     backgroundMusic.value.pause();
   }
   stopNarration();
+
+  // Reset narration flag for next visit
+  hasPlayedNarration.value = false;
 });
 
 const startNarration = async () => {
@@ -278,7 +285,7 @@ const startNarration = async () => {
     backgroundMusic.value.volume = 0.05;
   }
 
-  const fullText = `${roomTitle}... ${roomDescription}`;
+  const fullText = `${roomDescription}`;
 
   try {
     await azureSpeech.speak(fullText, {
@@ -329,7 +336,10 @@ const decreaseItems = () => {
 };
 
 const checkCode = () => {
-  if (inputCode.value === solution) {
+  // Check if cheat mode is enabled
+  const allowEveryCode = localStorage.getItem("allowEveryCode") === "true";
+
+  if (inputCode.value === solution || allowEveryCode) {
     // Correct!
     message.value = "✅ Correct! De code is juist!";
     messageClass.value = "bg-green-600 text-white";
@@ -347,12 +357,16 @@ const checkCode = () => {
     localStorage.setItem("escapeRoomProgress", JSON.stringify(progress));
   } else {
     // Fout
-    message.value = "❌ Helaas, probeer opnieuw";
+    message.value = "❌ Helaas, probeer opnieuw (-2 min)";
     messageClass.value = "bg-red-600 text-white shake";
 
     if (errorSound.value) {
       errorSound.value.play();
     }
+
+    // Timer met 2 minuten verminderen voor fout antwoord
+    const event = new CustomEvent("useHint", { detail: { minutes: 2 } });
+    window.dispatchEvent(event);
   }
 
   // Clear message after 3 seconds
@@ -362,6 +376,11 @@ const checkCode = () => {
 };
 
 const showHint = (index) => {
+  // Check if previous hints have been used (sequential requirement)
+  if (index > 0 && !hintsUsed.value[index - 1]) {
+    return; // Can't use this hint yet
+  }
+
   if (!hintsUsed.value[index]) {
     hintsUsed.value[index] = true;
     // Hier zou je de timer met 5 minuten kunnen verminderen
@@ -372,7 +391,7 @@ const showHint = (index) => {
 
 const goBack = () => {
   stopNarration();
-  router.push("/room/bar");
+  router.push("/room1");
 };
 
 const goToNext = () => {

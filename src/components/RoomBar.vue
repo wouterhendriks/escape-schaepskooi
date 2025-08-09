@@ -2,6 +2,9 @@
   <div
     class="h-screen w-screen bg-gray-900 flex flex-col items-center justify-center overflow-hidden relative"
   >
+    <!-- Timer Display -->
+    <TimerDisplay />
+
     <!-- Achtergrond textuur -->
     <div
       class="absolute inset-0 bg-gradient-to-br from-amber-950 via-gray-900 to-black opacity-90"
@@ -83,9 +86,7 @@
         class="bg-gray-800 bg-opacity-50 rounded-2xl p-12 shadow-2xl border-2 border-amber-700/30"
       >
         <p class="text-gray-300 text-3xl mb-12 leading-relaxed font-serif">
-          De bar was het domein van oude heer Prins. Hier ontving hij zijn
-          geheime gasten en sloot hij mysterieuze deals. Let op de glazen - ze
-          vertellen een verhaal...
+          {{ roomDescription }}
         </p>
 
         <!-- Code invoer -->
@@ -118,8 +119,15 @@
             v-for="(hint, index) in hints"
             :key="index"
             @click="showHint(index)"
-            :disabled="hintsUsed[index]"
-            class="flex-1 px-6 py-4 bg-purple-900/50 text-purple-300 text-xl rounded-xl hover:bg-purple-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            :disabled="index > 0 && !hintsUsed[index - 1]"
+            :class="[
+              'flex-1 px-6 py-4 text-xl rounded-xl transition-all',
+              hintsUsed[index]
+                ? 'bg-green-900/50 text-green-300'
+                : index > 0 && !hintsUsed[index - 1]
+                ? 'bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-50'
+                : 'bg-purple-900/50 text-purple-300 hover:bg-purple-800/50',
+            ]"
           >
             {{ hintsUsed[index] ? hint : `Hint ${index + 1} (-5 min)` }}
           </button>
@@ -172,6 +180,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { azureSpeech } from "../services/azureSpeech";
+import TimerDisplay from "./TimerDisplay.vue";
 
 const router = useRouter();
 const backgroundMusic = ref(null);
@@ -181,30 +190,32 @@ const isNarrating = ref(false);
 
 // Puzzle data
 const roomTitle = `De Bar`;
-const roomDescription = `De bar was het domein van oude heer Prins. Hier ontving hij zijn geheime gasten en sloot hij mysterieuze deals. Let op de glazen - ze vertellen een verhaal...`;
+const roomDescription = `De bar was het domein van oude heer Prins. Hier ontving hij zijn geheime gasten en sloot hij mysterieuze deals. Vaak waren er bepaalde geluiden te horen...`;
 const solutionCode = `23140`;
 const hints = [
-  `Kijk goed naar de hoeveelheden in het recept`,
-  `De cijfers staan in de volgorde van het recept`,
+  `De glazen, de glazen`,
+  `Vol is laag, leeg is hoog`,
+  `Van laag naar hoog voor de code`,
 ];
 
 // State
 const inputCode = ref("");
-const hintsUsed = ref([false, false]);
+const hintsUsed = ref([false, false, false]);
 const message = ref("");
 const messageClass = ref("");
 const isCompleted = ref(false);
+const hasPlayedNarration = ref(false);
 
 onMounted(() => {
   // Load saved progress
   const saved = localStorage.getItem("escapeRoomBar");
   if (saved) {
     const data = JSON.parse(saved);
-    // Zorg ervoor dat hintsUsed altijd correct is (2 hints)
-    if (Array.isArray(data.hintsUsed) && data.hintsUsed.length === 2) {
+    // Zorg ervoor dat hintsUsed altijd correct is (3 hints)
+    if (Array.isArray(data.hintsUsed) && data.hintsUsed.length === 3) {
       hintsUsed.value = data.hintsUsed;
     } else {
-      hintsUsed.value = [false, false];
+      hintsUsed.value = [false, false, false];
     }
     isCompleted.value = data.isCompleted || false;
   }
@@ -217,15 +228,11 @@ onMounted(() => {
     });
   }
 
-  // Check of narration al is afgespeeld in deze sessie
-  const narrationPlayed = sessionStorage.getItem("barNarrationPlayed");
-  
-  // Start narration alleen als niet eerder afgespeeld en kamer niet voltooid
-  if (!isCompleted.value && !narrationPlayed) {
+  // Start narration alleen als niet eerder afgespeeld tijdens dit bezoek en kamer niet voltooid
+  if (!isCompleted.value && !hasPlayedNarration.value) {
     setTimeout(() => {
       startNarration();
-      // Markeer als afgespeeld voor deze sessie
-      sessionStorage.setItem("barNarrationPlayed", "true");
+      hasPlayedNarration.value = true;
     }, 500);
   }
 });
@@ -245,6 +252,9 @@ onUnmounted(() => {
     backgroundMusic.value.pause();
   }
   stopNarration();
+
+  // Reset narration flag for next visit
+  hasPlayedNarration.value = false;
 });
 
 const startNarration = async () => {
@@ -255,7 +265,7 @@ const startNarration = async () => {
     backgroundMusic.value.volume = 0.05;
   }
 
-  const fullText = `${roomTitle}... ${roomDescription}`;
+  const fullText = `${roomDescription}`;
 
   try {
     await azureSpeech.speak(fullText, {
@@ -294,7 +304,10 @@ const stopNarration = () => {
 };
 
 const checkCode = () => {
-  if (inputCode.value === solutionCode) {
+  // Check if cheat mode is enabled
+  const allowEveryCode = localStorage.getItem("allowEveryCode") === "true";
+
+  if (inputCode.value === solutionCode || allowEveryCode) {
     // Correct!
     message.value = "✅ Correct! De code is juist!";
     messageClass.value = "bg-green-600 text-white";
@@ -312,12 +325,16 @@ const checkCode = () => {
     localStorage.setItem("escapeRoomProgress", JSON.stringify(progress));
   } else {
     // Fout
-    message.value = "❌ Helaas, probeer opnieuw";
+    message.value = "❌ Helaas, probeer opnieuw (-2 min)";
     messageClass.value = "bg-red-600 text-white shake";
 
     if (errorSound.value) {
       errorSound.value.play();
     }
+
+    // Timer met 2 minuten verminderen voor fout antwoord
+    const event = new CustomEvent("useHint", { detail: { minutes: 2 } });
+    window.dispatchEvent(event);
   }
 
   // Clear message after 3 seconds
@@ -327,6 +344,11 @@ const checkCode = () => {
 };
 
 const showHint = (index) => {
+  // Check if previous hints have been used (sequential requirement)
+  if (index > 0 && !hintsUsed.value[index - 1]) {
+    return; // Can't use this hint yet
+  }
+
   if (!hintsUsed.value[index]) {
     hintsUsed.value[index] = true;
     // Hier zou je de timer met 5 minuten kunnen verminderen
@@ -342,7 +364,7 @@ const goBack = () => {
 
 const goToNext = () => {
   stopNarration();
-  router.push("/room/keuken");
+  router.push("/room1");
 };
 </script>
 

@@ -2,6 +2,7 @@
   <div
     class="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-start overflow-hidden relative py-8"
   >
+    <TimerDisplay />
     <!-- Achtergrond textuur - slaapkamer thema -->
     <div
       class="absolute inset-0 bg-gradient-to-br from-purple-950 via-gray-900 to-black opacity-90"
@@ -26,6 +27,7 @@
       <h2
         class="text-5xl md:text-6xl font-bold text-purple-400 mb-8 text-center"
       >
+        <br /><br />
         🛏️ Slaapkamer Beneden
       </h2>
 
@@ -35,25 +37,51 @@
       >
         <!-- Verhaal - scrollbaar -->
         <div class="max-h-96 overflow-y-auto mb-8 pr-4">
-          <h3 class="text-3xl text-purple-400 mb-4 font-serif">Het Mysterie van Isabella Prins</h3>
-          <div class="text-gray-300 text-xl leading-relaxed space-y-4 font-serif">
+          <h3 class="text-3xl text-purple-400 mb-4 font-serif">
+            Het Mysterie van Isabella Prins
+          </h3>
+          <div
+            class="text-gray-300 text-xl leading-relaxed space-y-4 font-serif"
+          >
             <p>
-              Isabella Prins werd geboren toen de eerste sneeuw van 1893 viel. Haar moeder stierf bij de bevalling, waardoor ze opgroeide als enig kind van de strenge heer Prins. Men fluisterde dat ze haar moeders blauwe ogen had geërfd, maar haar vaders koppige karakter.
+              Isabella Prins werd geboren toen de eerste sneeuw van 1893 viel.
+              Haar moeder stierf bij de bevalling, waardoor ze opgroeide als
+              enig kind van de strenge heer Prins. Men fluisterde dat ze haar
+              moeders blauwe ogen had geërfd, maar haar vaders koppige karakter.
             </p>
             <p>
-              Elke ochtend speelde Isabella precies een half uur piano - niet langer, niet korter. Ze begon altijd met vijf toonladders voordat ze aan haar lievelingsstukken begon. Haar vader eiste perfectie: 'Een dame van stand moet vijf talenten beheersen,' zei hij vaak. Isabella beheerste er maar drie: piano, borduren en Frans. Paardrijden en schilderen bleven haar een raadsel.
+              Elke ochtend speelde Isabella precies een half uur piano - niet
+              langer, niet korter. Ze begon altijd met vijf toonladders voordat
+              ze aan haar lievelingsstukken begon. Haar vader eiste perfectie:
+              'Een dame van stand moet vijf talenten beheersen,' zei hij vaak.
+              Isabella beheerste er maar drie: piano, borduren en Frans.
+              Paardrijden en schilderen bleven haar een raadsel.
             </p>
             <p>
-              In de zomer dat de oude eik door bliksem werd getroffen, ontmoette Isabella de schaapherder Willem. Hij was de derde zoon van de molenaar, geboren in het jaar dat de grote droogte heerste. Willem beweerde dat hij alle sterrenbeelden kende, maar Isabella betrapte hem toen hij de Grote Beer verwarde met Cassiopeia. 'Er zijn belangrijkere dingen dan sterren,' lachte hij toen.
+              In de zomer dat de oude eik door bliksem werd getroffen, ontmoette
+              Isabella de schaapherder Willem. Hij was de derde zoon van de
+              molenaar, geboren in het jaar dat de grote droogte heerste. Willem
+              beweerde dat hij alle sterrenbeelden kende, maar Isabella betrapte
+              hem toen hij de Grote Beer verwarde met Cassiopeia. 'Er zijn
+              belangrijkere dingen dan sterren,' lachte hij toen.
             </p>
             <p>
-              Haar vader had andere plannen. Op Isabella's zeventiende verjaardag kondigde hij aan dat ze zou trouwen met de koopman Van Der Berg, een weduwnaar die twee keer zo oud was als zij. De bruiloft stond gepland voor de eerste volle maan van november.
+              Haar vader had andere plannen. Op Isabella's zeventiende
+              verjaardag kondigde hij aan dat ze zou trouwen met de koopman Van
+              Der Berg, een weduwnaar die twee keer zo oud was als zij. De
+              bruiloft stond gepland voor de eerste volle maan van november.
             </p>
             <p>
-              Maar het noodlot sloeg toe. Op een stormachtige oktobernacht hoorde het dienstmeisje de klok driemaal slaan, gevolgd door het geluid van brekend glas. De volgende ochtend was Isabella's kamer leeg. Alleen haar dagboek lag open op bed, met een vreemde som: 'Mijn leeftijd plus zijn geboorte, gedeeld door moeders talenten, minus vaders lessen. Dat is waar jullie ons kunnen vinden.'
+              Maar het noodlot sloeg toe. Op een stormachtige oktobernacht
+              hoorde het dienstmeisje de klok driemaal slaan, gevolgd door het
+              geluid van brekend glas. De volgende ochtend was Isabella's kamer
+              leeg. Alleen haar dagboek lag open op bed, met een vreemde som:
+              'Mijn leeftijd plus zijn geboorte, gedeeld door moeders talenten,
+              minus vaders lessen. Dat is waar jullie ons kunnen vinden.'
             </p>
             <p class="italic text-purple-300">
-              Sommigen zeggen dat ze nog steeds door het huis dwaalt, wachtend tot iemand haar raadsel oplost...
+              Sommigen zeggen dat ze nog steeds door het huis dwaalt, wachtend
+              tot iemand haar raadsel oplost...
             </p>
           </div>
         </div>
@@ -63,7 +91,8 @@
           class="bg-purple-900/20 rounded-xl p-6 mb-8 border border-purple-500/30"
         >
           <p class="text-purple-300 text-xl text-center">
-            Zoek de 4 briefjes verborgen in deze kamer. Elk briefje bevat een vraag over Isabella's verhaal.
+            Zoek de 4 briefjes verborgen in deze kamer. Elk briefje bevat een
+            vraag over Isabella's verhaal.
           </p>
         </div>
 
@@ -98,8 +127,15 @@
             v-for="(hint, index) in hints"
             :key="index"
             @click="showHint(index)"
-            :disabled="hintsUsed[index]"
-            class="px-6 py-4 bg-purple-900/50 text-purple-300 text-lg rounded-xl hover:bg-purple-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            :disabled="index > 0 && !hintsUsed[index - 1]"
+            :class="[
+              'px-6 py-4 text-lg rounded-xl transition-all',
+              hintsUsed[index]
+                ? 'bg-green-900/50 text-green-300'
+                : index > 0 && !hintsUsed[index - 1]
+                ? 'bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-50'
+                : 'bg-purple-900/50 text-purple-300 hover:bg-purple-800/50',
+            ]"
           >
             <span v-if="!hintsUsed[index]">Hint {{ index + 1 }} (-5 min)</span>
             <div v-else class="text-left">
@@ -156,6 +192,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import TimerDisplay from "./TimerDisplay.vue";
 
 const router = useRouter();
 const backgroundMusic = ref(null);
@@ -167,20 +204,20 @@ const solution = "18972175"; // 1897, 2, 17, 5
 const hints = [
   {
     label: "Schaapherder geboren",
-    text: "Grote droogte = 3 jaar voor nieuwe eeuw (1900)"
+    text: "Grote droogte = 3 jaar voor nieuwe eeuw (1900)",
   },
   {
     label: "Talenten miste",
-    text: "Vader eiste 5 talenten, Isabella beheerste er 3"
+    text: "Vader eiste 5 talenten, Isabella beheerste er 3",
   },
   {
     label: "Verschil leeftijd",
-    text: "Weduwnaar was twee keer zo oud als de 17-jarige Isabella"
+    text: "Weduwnaar was twee keer zo oud als de 17-jarige Isabella",
   },
   {
     label: "Muzikale oefeningen",
-    text: "Ze begon altijd met toonladders voordat ze echt begon"
-  }
+    text: "Ze begon altijd met toonladders voordat ze echt begon",
+  },
 ];
 
 // State
@@ -195,7 +232,7 @@ onMounted(() => {
   const progress = JSON.parse(
     localStorage.getItem("escapeRoomProgress") || "{}"
   );
-  
+
   // Load saved progress for this room
   const saved = localStorage.getItem("escapeRoomSlaapkamer");
   if (saved) {
@@ -234,7 +271,10 @@ onUnmounted(() => {
 });
 
 const checkCode = () => {
-  if (inputCode.value === solution) {
+  // Check if cheat mode is enabled
+  const allowEveryCode = localStorage.getItem("allowEveryCode") === "true";
+
+  if (inputCode.value === solution || allowEveryCode) {
     // Correct!
     message.value = "✅ Correct! Isabella's geheim is ontrafeld!";
     messageClass.value = "bg-green-600 text-white";
@@ -252,12 +292,16 @@ const checkCode = () => {
     localStorage.setItem("escapeRoomProgress", JSON.stringify(progress));
   } else {
     // Fout
-    message.value = "❌ Helaas, probeer opnieuw";
+    message.value = "❌ Helaas, probeer opnieuw (-2 min)";
     messageClass.value = "bg-red-600 text-white shake";
 
     if (errorSound.value) {
       errorSound.value.play();
     }
+
+    // Timer met 2 minuten verminderen voor fout antwoord
+    const event = new CustomEvent("useHint", { detail: { minutes: 2 } });
+    window.dispatchEvent(event);
   }
 
   // Clear message after 3 seconds
@@ -267,6 +311,11 @@ const checkCode = () => {
 };
 
 const showHint = (index) => {
+  // Check if previous hints have been used (sequential requirement)
+  if (index > 0 && !hintsUsed.value[index - 1]) {
+    return; // Can't use this hint yet
+  }
+
   if (!hintsUsed.value[index]) {
     hintsUsed.value[index] = true;
     // Timer verminderen met 5 minuten

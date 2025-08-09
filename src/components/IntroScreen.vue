@@ -50,7 +50,11 @@
         >
           <span class="flex items-center gap-4">
             <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                clip-rule="evenodd"
+              />
             </svg>
             Start
           </span>
@@ -157,29 +161,41 @@
           >
             <span
               class="text-6xl float-left mr-4 mt-2 text-red-500 drop-shadow-2xl"
-              >J</span
-            >e ontwaakt in een donkere ruimte. De geur van oud hout en vochtige
-            aarde dringt je neusgaten binnen.
+              >H</span
+            >et is 2025. Jullie hebben een brief ontvangen van notaris Van der
+            Berg uit Voorthuizen. De familie Van Heugten heeft jullie
+            uitgenodigd om een weekend door te brengen in hun vakantiehuis De
+            Schaepskooi. Maar dit is geen gewone uitnodiging...
           </p>
           <p
-            class="text-white/80 text-3xl leading-relaxed opacity-0 animate-fadeIn font-serif"
+            class="text-white/80 text-3xl leading-relaxed opacity-0 animate-fadeIn font-serif italic"
             style="animation-delay: 1.5s; animation-fill-mode: forwards"
           >
-            Waar ben je? Hoe ben je hier gekomen? De laatste herinnering is
-            vaag...
+            "Beste gasten,
           </p>
           <p
             class="text-white/70 text-3xl leading-relaxed opacity-0 animate-fadeIn font-serif"
             style="animation-delay: 2.5s; animation-fill-mode: forwards"
           >
-            Een oude schaapskooi... maar er klopt iets niet. De muren lijken te
-            ademen, de schaduwen bewegen.
+            In 1985 heeft mijn vader tijdens de renovatie van De Schaepskooi
+            iets ontdekt. Hij sprak over een erfenis van de mysterieuze heer
+            Prins uit 1900, maar stierf voordat hij het geheim kon onthullen. We
+            weten alleen dat hij een ingenieus systeem van aanwijzingen heeft
+            achtergelaten door het hele huis.
+          </p>
+          <p
+            class="text-white/70 text-3xl leading-relaxed opacity-0 animate-fadeIn font-serif"
+            style="animation-delay: 3.5s; animation-fill-mode: forwards"
+          >
+            Volgens zijn aantekeningen bevat het huis 10 verborgen locaties met
+            puzzels. Alleen door ze allemaal op te lossen, kunnen jullie het
+            familiegeheim ontrafelen. Jullie hebben 2 uur de tijd. Succes!
           </p>
           <p
             class="text-red-400 text-3xl leading-relaxed opacity-0 animate-fadeIn font-serif italic"
-            style="animation-delay: 3.5s; animation-fill-mode: forwards"
+            style="animation-delay: 4.5s; animation-fill-mode: forwards"
           >
-            Je moet hier weg zien te komen... voordat het te laat is.
+            Familie Van Heugten"
           </p>
         </div>
       </div>
@@ -224,7 +240,7 @@
     <audio ref="clickSound" preload="auto">
       <source src="/audio/click-sound.mp3" type="audio/mpeg" />
     </audio>
-    
+
     <audio ref="thunderSound" preload="auto">
       <source src="/audio/thunder.mp3" type="audio/mpeg" />
     </audio>
@@ -235,25 +251,29 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { azureSpeech } from "../services/azureSpeech";
+import { useTimer } from "../composables/useTimer";
 
 const router = useRouter();
+const { start: startTimer } = useTimer();
 const backgroundMusic = ref(null);
 const clickSound = ref(null);
 const thunderSound = ref(null);
 const isNarrating = ref(false);
-const currentUtterance = ref(null);
 const experienceStarted = ref(false);
 const audioEnabled = ref(true); // Direct true voor Chrome met --autoplay-policy flag
 
 // Het complete verhaal dat voorgelezen wordt
-const storyText = `Je ontwaakt in een donkere ruimte. De geur van oud hout en vochtige aarde dringt je neusgaten binnen.
-Waar ben je? Hoe ben je hier gekomen? De laatste herinnering is vaag...
-Een oude schaapskooi... maar er klopt iets niet. De muren lijken te ademen, de schaduwen bewegen.
-Je moet hier weg zien te komen... voordat het te laat is.`;
+const storyText = `Het is 2025. Jullie hebben een brief ontvangen van notaris Van der Berg uit Voorthuizen. De familie Van Heugten heeft jullie uitgenodigd om een week door te brengen in hun vakantiehuis De Schaepskooi. Maar dit is geen gewone uitnodiging...
+
+"Beste gasten,
+In 1985 heeft mijn vader tijdens de renovatie van De Schaepskooi iets ontdekt. Hij sprak over een erfenis van de mysterieuze heer Prins uit 1900, maar stierf voordat hij het geheim kon onthullen. We weten alleen dat hij een ingenieus systeem van aanwijzingen heeft achtergelaten door het hele huis.
+
+Volgens zijn aantekeningen bevat het huis 8 verborgen locaties met puzzels. Alleen door ze allemaal op te lossen, kunnen jullie het familiegeheim ontrafelen. Jullie hebben 2 uur de tijd. Succes!
+Familie Van Heugten"`;
 
 const enableAudio = () => {
   audioEnabled.value = true;
-  
+
   // Start achtergrondmuziek meteen
   if (backgroundMusic.value) {
     backgroundMusic.value.volume = 0.2;
@@ -280,12 +300,15 @@ const startExperience = () => {
 onMounted(() => {
   // Start lightning effects met random intervals
   startLightningEffects();
-  
+
   // Start achtergrondmuziek direct (werkt met Chrome --autoplay-policy flag)
   if (backgroundMusic.value) {
     backgroundMusic.value.volume = 0.1; // Zachter: was 0.2
     backgroundMusic.value.play().catch((err) => {
-      console.log(`Autoplay niet toegestaan, gebruik Chrome met --autoplay-policy flag:`, err);
+      console.log(
+        `Autoplay niet toegestaan, gebruik Chrome met --autoplay-policy flag:`,
+        err
+      );
     });
   }
 });
@@ -297,23 +320,23 @@ const startLightningEffects = () => {
     setTimeout(() => {
       if (thunderSound.value && audioEnabled.value) {
         thunderSound.value.volume = 0.3;
-        thunderSound.value.play().catch(err => {
+        thunderSound.value.play().catch((err) => {
           console.log(`Thunder sound kon niet afspelen:`, err);
         });
       }
     }, 440); // Sync met CSS lightning animation
   };
-  
+
   // Speel om de 4 seconden (sync met eerste lightning animation)
   playThunderWithLightning(); // Start meteen
   setInterval(playThunderWithLightning, 4000); // Herhaal elke 4s
-  
+
   // Extra thunder voor tweede lightning (elke 6s)
   setTimeout(() => {
     setInterval(() => {
       if (thunderSound.value && audioEnabled.value) {
         thunderSound.value.volume = 0.25;
-        thunderSound.value.play().catch(err => {
+        thunderSound.value.play().catch((err) => {
           console.log(`Thunder sound 2 kon niet afspelen:`, err);
         });
       }
@@ -333,10 +356,12 @@ const startNarration = async () => {
   // Fade muziek naar heel zacht
   if (backgroundMusic.value) {
     const fadeOut = setInterval(() => {
-      if (backgroundMusic.value.volume > 0.05) {
+      if (backgroundMusic.value && backgroundMusic.value.volume > 0.05) {
         backgroundMusic.value.volume -= 0.02;
       } else {
-        backgroundMusic.value.volume = 0.05; // Blijf op zeer laag volume
+        if (backgroundMusic.value) {
+          backgroundMusic.value.volume = 0.05; // Blijf op zeer laag volume
+        }
         clearInterval(fadeOut);
       }
     }, 50);
@@ -347,28 +372,32 @@ const startNarration = async () => {
   try {
     // Probeer Azure Speech te gebruiken
     await azureSpeech.speak(storyText, {
-      style: 'whispering', // Fluisterend voor mysterie
-      rate: '0.85',
-      pitch: '-10%', // Lagere stem
-      volume: '95'
+      style: "whispering", // Fluisterend voor mysterie
+      rate: "0.85",
+      pitch: "-10%", // Lagere stem
+      volume: "95",
     });
-    
+
     isNarrating.value = false;
-    
+
     // Fade muziek weer omhoog na narration
     if (backgroundMusic.value) {
       const fadeIn = setInterval(() => {
-        if (backgroundMusic.value.volume < 0.3) {
+        if (backgroundMusic.value && backgroundMusic.value.volume < 0.3) {
           backgroundMusic.value.volume += 0.02;
         } else {
-          backgroundMusic.value.volume = 0.3;
+          if (backgroundMusic.value) {
+            backgroundMusic.value.volume = 0.3;
+          }
           clearInterval(fadeIn);
         }
       }, 50);
     }
   } catch (error) {
-    console.log('Azure Speech niet beschikbaar, gebruik browser TTS als fallback');
-    
+    console.log(
+      "Azure Speech niet beschikbaar, gebruik browser TTS als fallback"
+    );
+
     // Fallback naar originele browser TTS code
     if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(storyText);
@@ -381,10 +410,12 @@ const startNarration = async () => {
         isNarrating.value = false;
         if (backgroundMusic.value) {
           const fadeIn = setInterval(() => {
-            if (backgroundMusic.value.volume < 0.3) {
+            if (backgroundMusic.value && backgroundMusic.value.volume < 0.3) {
               backgroundMusic.value.volume += 0.02;
             } else {
-              backgroundMusic.value.volume = 0.3;
+              if (backgroundMusic.value) {
+                backgroundMusic.value.volume = 0.3;
+              }
               clearInterval(fadeIn);
             }
           }, 50);
@@ -407,14 +438,14 @@ const startNarration = async () => {
 const stopNarration = () => {
   // Stop Azure Speech
   azureSpeech.stop();
-  
+
   // Stop ook browser TTS voor zekerheid
   if (window.speechSynthesis) {
     window.speechSynthesis.cancel();
   }
-  
+
   isNarrating.value = false;
-  
+
   // Zet muziek weer op normaal volume
   if (backgroundMusic.value) {
     backgroundMusic.value.volume = 0.3;
@@ -425,6 +456,9 @@ const startEscapeRoom = () => {
   // Stop narration als die bezig is
   stopNarration();
 
+  // Start de timer voor de escape room
+  startTimer();
+
   // Speel click geluid
   if (clickSound.value) {
     clickSound.value.volume = 0.5;
@@ -434,10 +468,12 @@ const startEscapeRoom = () => {
   // Fade out muziek
   if (backgroundMusic.value) {
     const fadeOut = setInterval(() => {
-      if (backgroundMusic.value.volume > 0.05) {
+      if (backgroundMusic.value && backgroundMusic.value.volume > 0.05) {
         backgroundMusic.value.volume -= 0.05;
       } else {
-        backgroundMusic.value.pause();
+        if (backgroundMusic.value) {
+          backgroundMusic.value.pause();
+        }
         clearInterval(fadeOut);
       }
     }, 100);
@@ -621,7 +657,8 @@ const startEscapeRoom = () => {
 
 /* Lightning effects - korter en vaker */
 @keyframes lightning {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
   }
   10% {
@@ -656,10 +693,12 @@ const startEscapeRoom = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to bottom, 
-    rgba(255, 255, 255, 0.1) 0%, 
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.1) 0%,
     rgba(255, 255, 255, 0) 50%,
-    rgba(255, 255, 255, 0) 100%);
+    rgba(255, 255, 255, 0) 100%
+  );
   opacity: 0;
   animation: lightning 4s infinite; /* Was 8s */
   mix-blend-mode: screen;
@@ -672,9 +711,11 @@ const startEscapeRoom = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at top, 
-    rgba(200, 200, 255, 0.2) 0%, 
-    transparent 60%);
+  background: radial-gradient(
+    ellipse at top,
+    rgba(200, 200, 255, 0.2) 0%,
+    transparent 60%
+  );
   opacity: 0;
   animation: lightning 6s infinite; /* Was 12s */
   animation-delay: 2s; /* Was 3s */

@@ -4,7 +4,10 @@ import Room1 from '../components/Room1.vue'
 import RoomBar from '../components/RoomBar.vue'
 import RoomKeuken from '../components/RoomKeuken.vue'
 import RoomSlaapkamer from '../components/RoomSlaapkamer.vue'
+import RoomHalletje from '../components/RoomHalletje.vue'
 import RoomTuin from '../components/RoomTuin.vue'
+import RoomOverloop from '../components/RoomOverloop.vue'
+import RoomBadkamer from '../components/RoomBadkamer.vue'
 
 const routes = [
   {
@@ -33,9 +36,24 @@ const routes = [
     component: RoomSlaapkamer
   },
   {
+    path: '/room/halletje',
+    name: 'RoomHalletje',
+    component: RoomHalletje
+  },
+  {
     path: '/room/tuin',
     name: 'RoomTuin',
     component: RoomTuin
+  },
+  {
+    path: '/room/overloop',
+    name: 'RoomOverloop',
+    component: RoomOverloop
+  },
+  {
+    path: '/room/badkamer',
+    name: 'RoomBadkamer',
+    component: RoomBadkamer
   }
 ]
 
