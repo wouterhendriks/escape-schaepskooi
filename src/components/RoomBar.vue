@@ -1,0 +1,373 @@
+<template>
+  <div
+    class="h-screen w-screen bg-gray-900 flex flex-col items-center justify-center overflow-hidden relative"
+  >
+    <!-- Achtergrond textuur -->
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-amber-950 via-gray-900 to-black opacity-90"
+    ></div>
+
+    <!-- Vignette effect voor focus -->
+    <div
+      class="absolute inset-0"
+      style="
+        background: radial-gradient(
+          circle at center,
+          transparent 0%,
+          rgba(0, 0, 0, 0.4) 50%,
+          rgba(0, 0, 0, 0.8) 100%
+        );
+      "
+    ></div>
+
+    <!-- Stop Audio knop - rechtsonder -->
+    <button
+      v-if="isNarrating"
+      @click="stopNarration"
+      class="fixed bottom-8 right-8 z-50 px-8 py-4 bg-red-900 bg-opacity-90 text-white text-2xl font-bold rounded-xl hover:bg-red-800 transition-all duration-300 hover:scale-105 transform flex items-center gap-3 shadow-2xl border-2 border-red-700"
+    >
+      <svg
+        class="w-8 h-8"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="3"
+          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="3"
+          d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+        />
+      </svg>
+      Stop Audio
+    </button>
+
+    <!-- Kamer container -->
+    <div class="relative z-10 max-w-7xl w-full px-16">
+      <!-- Audio indicator - GROTER -->
+      <div
+        v-if="isNarrating"
+        class="flex items-center gap-4 text-amber-500 mb-8 justify-center"
+      >
+        <svg
+          class="w-10 h-10 animate-pulse"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span class="text-xl uppercase tracking-wider"
+          >Verteller spreekt...</span
+        >
+      </div>
+
+      <!-- Kamer titel - VEEL GROTER -->
+      <h2
+        class="text-6xl md:text-7xl font-bold text-amber-500 mb-12 text-center"
+      >
+        🍺 De Bar
+      </h2>
+
+      <!-- Content container -->
+      <div
+        class="bg-gray-800 bg-opacity-50 rounded-2xl p-12 shadow-2xl border-2 border-amber-700/30"
+      >
+        <p class="text-gray-300 text-3xl mb-12 leading-relaxed font-serif">
+          De bar was het domein van oude heer Prins. Hier ontving hij zijn
+          geheime gasten en sloot hij mysterieuze deals. Let op de glazen - ze
+          vertellen een verhaal...
+        </p>
+
+        <!-- Code invoer -->
+        <div
+          class="bg-gray-900/50 rounded-xl p-8 mb-8 border border-amber-600/30"
+        >
+          <label class="block text-2xl text-amber-400 mb-4"
+            >Voer de 5-cijferige code in:</label
+          >
+          <input
+            v-model="inputCode"
+            type="text"
+            inputmode="numeric"
+            maxlength="5"
+            class="w-full px-6 py-4 text-4xl text-center tracking-widest bg-gray-800 text-white rounded-xl border-2 border-amber-600/50 focus:border-amber-500 focus:outline-none"
+            placeholder="_ _ _ _ _"
+            @keyup.enter="checkCode"
+          />
+          <button
+            @click="checkCode"
+            class="w-full mt-6 px-8 py-4 bg-gradient-to-r from-amber-700 to-amber-600 text-white text-3xl font-bold rounded-xl hover:from-amber-600 hover:to-amber-500 transition-all transform hover:scale-105"
+          >
+            Controleer Code
+          </button>
+        </div>
+
+        <!-- Hints -->
+        <div class="flex gap-4 mb-8">
+          <button
+            v-for="(hint, index) in hints"
+            :key="index"
+            @click="showHint(index)"
+            :disabled="hintsUsed[index]"
+            class="flex-1 px-6 py-4 bg-purple-900/50 text-purple-300 text-xl rounded-xl hover:bg-purple-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {{ hintsUsed[index] ? hint : `Hint ${index + 1} (-5 min)` }}
+          </button>
+        </div>
+
+        <!-- Feedback messages -->
+        <div
+          v-if="message"
+          :class="messageClass"
+          class="text-center text-3xl font-bold p-6 rounded-xl mb-8"
+        >
+          {{ message }}
+        </div>
+      </div>
+
+      <!-- Navigatie knoppen -->
+      <div class="flex justify-between mt-12">
+        <button
+          @click="goBack"
+          class="px-12 py-6 bg-gray-700 text-gray-300 text-2xl rounded-xl hover:bg-gray-600 transition-all duration-300 hover:scale-105 transform"
+        >
+          ← Terug naar overzicht
+        </button>
+        <button
+          v-if="isCompleted"
+          @click="goToNext"
+          class="px-12 py-6 bg-green-700 text-white text-2xl rounded-xl hover:bg-green-600 transition-all duration-300 hover:scale-105 transform animate-pulse"
+        >
+          Naar De Keuken →
+        </button>
+      </div>
+    </div>
+
+    <!-- Audio elementen voor achtergrondmuziek -->
+    <audio ref="backgroundMusic" loop preload="auto">
+      <source src="/audio/bar-ambient.mp3" type="audio/mpeg" />
+    </audio>
+
+    <audio ref="successSound" preload="auto">
+      <source src="/audio/success.mp3" type="audio/mpeg" />
+    </audio>
+
+    <audio ref="errorSound" preload="auto">
+      <source src="/audio/error.mp3" type="audio/mpeg" />
+    </audio>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { azureSpeech } from "../services/azureSpeech";
+
+const router = useRouter();
+const backgroundMusic = ref(null);
+const successSound = ref(null);
+const errorSound = ref(null);
+const isNarrating = ref(false);
+
+// Puzzle data
+const roomTitle = `De Bar`;
+const roomDescription = `De bar was het domein van oude heer Prins. Hier ontving hij zijn geheime gasten en sloot hij mysterieuze deals. Let op de glazen - ze vertellen een verhaal...`;
+const solutionCode = `23140`;
+const hints = [
+  `Kijk goed naar de hoeveelheden in het recept`,
+  `De cijfers staan in de volgorde van het recept`,
+];
+
+// State
+const inputCode = ref("");
+const hintsUsed = ref([false, false]);
+const message = ref("");
+const messageClass = ref("");
+const isCompleted = ref(false);
+
+onMounted(() => {
+  // Load saved progress
+  const saved = localStorage.getItem("escapeRoomBar");
+  if (saved) {
+    const data = JSON.parse(saved);
+    // Zorg ervoor dat hintsUsed altijd correct is (2 hints)
+    if (Array.isArray(data.hintsUsed) && data.hintsUsed.length === 2) {
+      hintsUsed.value = data.hintsUsed;
+    } else {
+      hintsUsed.value = [false, false];
+    }
+    isCompleted.value = data.isCompleted || false;
+  }
+
+  // Start achtergrondmuziek
+  if (backgroundMusic.value) {
+    backgroundMusic.value.volume = 0.1;
+    backgroundMusic.value.play().catch((err) => {
+      console.log(`Achtergrondmuziek kon niet starten:`, err);
+    });
+  }
+
+  // Check of narration al is afgespeeld in deze sessie
+  const narrationPlayed = sessionStorage.getItem("barNarrationPlayed");
+  
+  // Start narration alleen als niet eerder afgespeeld en kamer niet voltooid
+  if (!isCompleted.value && !narrationPlayed) {
+    setTimeout(() => {
+      startNarration();
+      // Markeer als afgespeeld voor deze sessie
+      sessionStorage.setItem("barNarrationPlayed", "true");
+    }, 500);
+  }
+});
+
+onUnmounted(() => {
+  // Save progress
+  localStorage.setItem(
+    "escapeRoomBar",
+    JSON.stringify({
+      hintsUsed: hintsUsed.value,
+      isCompleted: isCompleted.value,
+    })
+  );
+
+  // Stop muziek en narration
+  if (backgroundMusic.value) {
+    backgroundMusic.value.pause();
+  }
+  stopNarration();
+});
+
+const startNarration = async () => {
+  isNarrating.value = true;
+
+  // Fade muziek
+  if (backgroundMusic.value) {
+    backgroundMusic.value.volume = 0.05;
+  }
+
+  const fullText = `${roomTitle}... ${roomDescription}`;
+
+  try {
+    await azureSpeech.speak(fullText, {
+      style: "whispering",
+      rate: "0.9",
+      pitch: "-5%",
+    });
+  } catch (error) {
+    // Fallback to browser TTS
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(fullText);
+      utterance.lang = "nl-NL";
+      utterance.rate = 0.9;
+      utterance.pitch = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  isNarrating.value = false;
+
+  // Volume terug
+  if (backgroundMusic.value) {
+    backgroundMusic.value.volume = 0.1;
+  }
+};
+
+const stopNarration = () => {
+  azureSpeech.stop();
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+  isNarrating.value = false;
+  if (backgroundMusic.value) {
+    backgroundMusic.value.volume = 0.1;
+  }
+};
+
+const checkCode = () => {
+  if (inputCode.value === solutionCode) {
+    // Correct!
+    message.value = "✅ Correct! De code is juist!";
+    messageClass.value = "bg-green-600 text-white";
+    isCompleted.value = true;
+
+    if (successSound.value) {
+      successSound.value.play();
+    }
+
+    // Save completion
+    const progress = JSON.parse(
+      localStorage.getItem("escapeRoomProgress") || "{}"
+    );
+    progress.bar = true;
+    localStorage.setItem("escapeRoomProgress", JSON.stringify(progress));
+  } else {
+    // Fout
+    message.value = "❌ Helaas, probeer opnieuw";
+    messageClass.value = "bg-red-600 text-white shake";
+
+    if (errorSound.value) {
+      errorSound.value.play();
+    }
+  }
+
+  // Clear message after 3 seconds
+  setTimeout(() => {
+    message.value = "";
+  }, 3000);
+};
+
+const showHint = (index) => {
+  if (!hintsUsed.value[index]) {
+    hintsUsed.value[index] = true;
+    // Hier zou je de timer met 5 minuten kunnen verminderen
+    const event = new CustomEvent("useHint", { detail: { minutes: 5 } });
+    window.dispatchEvent(event);
+  }
+};
+
+const goBack = () => {
+  stopNarration();
+  router.push("/room1");
+};
+
+const goToNext = () => {
+  stopNarration();
+  router.push("/room/keuken");
+};
+</script>
+
+<style scoped>
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake 0.5s;
+}
+</style>
