@@ -89,7 +89,7 @@
         <div class="flex justify-between items-center mb-6">
           <span class="text-2xl text-gray-300">Voortgang</span>
           <span class="text-2xl text-amber-400 font-bold"
-            >{{ completedRooms }} / 10 kamers</span
+            >{{ completedRooms }} / 8 kamers</span
           >
         </div>
         <div class="w-full bg-gray-700 rounded-full h-5 lg:h-6">
