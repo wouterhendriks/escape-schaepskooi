@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-start overflow-hidden relative pt-8 md:pt-12 lg:pt-16 pb-10"
+    class="min-h-screen w-screen bg-gray-900 flex flex-col items-center justify-start overflow-y-auto relative pt-8 md:pt-12 lg:pt-16 pb-10"
   >
     <!-- Timer Display -->
     <TimerDisplay />
@@ -95,7 +95,7 @@
         <div class="w-full bg-gray-700 rounded-full h-5 lg:h-6">
           <div
             class="bg-gradient-to-r from-green-600 to-green-400 h-5 lg:h-6 rounded-full transition-all duration-500"
-            :style="`width: ${(completedRooms / 10) * 100}%`"
+            :style="`width: ${(completedRooms / 8) * 100}%`"
           ></div>
         </div>
       </div>
@@ -432,6 +432,56 @@
             ⚠️ Voltooi eerst de vorige kamer
           </div>
         </div>
+
+        <!-- De Woonkamer -->
+        <div
+          @click="goToRoom('woonkamer')"
+          class="bg-gray-800 bg-opacity-50 rounded-2xl p-6 md:p-10 lg:p-12 shadow-2xl border-2 transition-all duration-300 cursor-pointer hover:scale-105 transform"
+          :class="
+            getRoomStatus('woonkamer')
+              ? 'border-green-500 bg-green-900/20'
+              : canAccessWoonkamer
+              ? 'border-red-600 hover:bg-red-900/20'
+              : 'border-gray-600 opacity-50 cursor-not-allowed'
+          "
+        >
+          <div class="flex justify-between items-start mb-4 md:mb-6 lg:mb-8">
+            <h3
+              class="text-3xl md:text-4xl lg:text-5xl font-bold"
+              :class="canAccessWoonkamer ? 'text-red-400' : 'text-gray-500'"
+            >
+              {{ canAccessWoonkamer ? "🛋️ De Woonkamer" : "🔒 ???" }}
+            </h3>
+            <span
+              v-if="getRoomStatus('woonkamer')"
+              class="text-green-400 text-xl md:text-2xl"
+              >✅</span
+            >
+            <span
+              v-else-if="!canAccessWoonkamer"
+              class="text-gray-500 text-xl md:text-2xl"
+              >🔒</span
+            >
+          </div>
+          <p
+            v-if="canAccessWoonkamer"
+            class="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6"
+          >
+            Het laatste Scrabble spel van de familie Van Heugten...
+          </p>
+          <p
+            v-else
+            class="text-gray-500 text-lg md:text-xl lg:text-2xl leading-relaxed mb-4 md:mb-6 italic"
+          >
+            Los eerst de vorige kamer op
+          </p>
+          <div
+            v-if="!canAccessWoonkamer"
+            class="mt-4 md:mt-6 lg:mt-8 text-red-400 text-base md:text-lg lg:text-xl"
+          >
+            ⚠️ Voltooi eerst de vorige kamer
+          </div>
+        </div>
       </div>
 
       <!-- Tijdelijke terugknop - GROTER -->
@@ -464,7 +514,7 @@ const completedRoomsData = ref({});
 
 // De tekst die voorgelezen wordt
 const roomTitle = "Kamers Overzicht";
-const roomDescription = `Welkom in het Geheim van De Schaepskooi. Je hebt 10 locaties om te onderzoeken.
+const roomDescription = `Welkom in het Geheim van De Schaepskooi. Je hebt 9 locaties om te onderzoeken.
 Begin met De Bar en ontsluit langzaam alle geheimen van dit mysterieuze huis...`;
 
 // Load completed rooms from localStorage
@@ -517,6 +567,11 @@ const canAccessBadkamer = computed(() => {
   return getRoomStatus("overloop");
 });
 
+// Check of woonkamer toegankelijk is (badkamer moet eerst voltooid zijn)
+const canAccessWoonkamer = computed(() => {
+  return getRoomStatus("badkamer");
+});
+
 // Navigeer naar een kamer
 const goToRoom = (roomId) => {
   // Voor keuken: check eerst of bar is voltooid
@@ -551,6 +606,12 @@ const goToRoom = (roomId) => {
 
   // Voor badkamer: check eerst of overloop is voltooid
   if (roomId === "badkamer" && !canAccessBadkamer.value) {
+    // Shake animatie of waarschuwing
+    return;
+  }
+
+  // Voor woonkamer: check eerst of badkamer is voltooid
+  if (roomId === "woonkamer" && !canAccessWoonkamer.value) {
     // Shake animatie of waarschuwing
     return;
   }

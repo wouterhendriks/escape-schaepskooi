@@ -69,7 +69,7 @@
     >
       <!-- Glass effect container voor titel - met VEEL meer ruimte -->
       <div
-        class="backdrop-blur-xl bg-black/40 rounded-3xl px-20 py-16 border border-white/10 shadow-2xl"
+        class="bbg-black/40 rounded-3xl px-20 py-16 border border-white/10 shadow-2xl"
       >
         <!-- Creepy titel met schaduw effecten - VEEL GROTER -->
         <h1
@@ -77,12 +77,6 @@
         >
           De Schaepskooi
         </h1>
-        <p
-          class="text-gray-300 text-3xl tracking-widest uppercase animate-fadeIn text-center"
-          style="margin-top: 3rem"
-        >
-          Een interactieve escape room ervaring
-        </p>
       </div>
 
       <!-- Gloeiende start knop - met VEEL meer ruimte erboven via gap-32 -->
@@ -233,9 +227,6 @@
     </div>
 
     <!-- Audio elementen -->
-    <audio ref="backgroundMusic" loop preload="auto">
-      <source src="/audio/intro-music.mp3" type="audio/mpeg" />
-    </audio>
 
     <audio ref="clickSound" preload="auto">
       <source src="/audio/click-sound.mp3" type="audio/mpeg" />

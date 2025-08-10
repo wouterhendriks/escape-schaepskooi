@@ -8,6 +8,7 @@ import RoomHalletje from '../components/RoomHalletje.vue'
 import RoomTuin from '../components/RoomTuin.vue'
 import RoomOverloop from '../components/RoomOverloop.vue'
 import RoomBadkamer from '../components/RoomBadkamer.vue'
+import RoomWoonkamer from '../components/RoomWoonkamer.vue'
 
 const routes = [
   {
@@ -54,6 +55,11 @@ const routes = [
     path: '/room/badkamer',
     name: 'RoomBadkamer',
     component: RoomBadkamer
+  },
+  {
+    path: '/room/woonkamer',
+    name: 'RoomWoonkamer',
+    component: RoomWoonkamer
   }
 ]
 
