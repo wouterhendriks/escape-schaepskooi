@@ -245,7 +245,7 @@ import { azureSpeech } from "../services/azureSpeech";
 import { useTimer } from "../composables/useTimer";
 
 const router = useRouter();
-const { start: startTimer } = useTimer();
+const { start: startTimer, reset: resetTimer } = useTimer();
 const backgroundMusic = ref(null);
 const clickSound = ref(null);
 const thunderSound = ref(null);
@@ -301,6 +301,24 @@ onMounted(() => {
         err
       );
     });
+  }
+  
+  // Reset alle kamer voortgang als het spel al voltooid was
+  const escapeCompleted = localStorage.getItem('escapeRoomCompleted');
+  if (escapeCompleted === 'true') {
+    // Reset alle kamers
+    localStorage.removeItem('escapeRoomProgress');
+    localStorage.removeItem('escapeRoomBar');
+    localStorage.removeItem('escapeRoomKeuken');
+    localStorage.removeItem('escapeRoomSlaapkamer');
+    localStorage.removeItem('escapeRoomTuin');
+    localStorage.removeItem('escapeRoomHalletje');
+    localStorage.removeItem('escapeRoomOverloop');
+    localStorage.removeItem('escapeRoomBadkamer');
+    localStorage.removeItem('escapeRoomWoonkamer');
+    localStorage.removeItem('escapeRoomCompleted');
+    localStorage.removeItem('escapeRoomFinalTime');
+    console.log('🔄 Escape room voortgang gereset voor nieuwe sessie');
   }
 });
 
@@ -447,7 +465,8 @@ const startEscapeRoom = () => {
   // Stop narration als die bezig is
   stopNarration();
 
-  // Start de timer voor de escape room
+  // Reset de timer naar 2 uur en start opnieuw
+  resetTimer();
   startTimer();
 
   // Speel click geluid
